@@ -1,0 +1,114 @@
+import numpy as np
+import pandas as pd
+import one_hot
+import math
+
+
+def SigmoidActivationFunction(weightedInput):
+    return 1/(1 + np.exp(-weightedInput))
+
+class Layer:
+    def __init__(self,inputNodes,outputNodes) -> None:
+
+        self.inputNodes = inputNodes
+        self.outputNodes = outputNodes
+        random = np.random.RandomState(1)
+        """
+        WEIGHTS
+        tworzy 2-wymiarową listę z wartościami wag 
+        Przykładowo gdy warstwa ma 2 wejścia i 3 wyjścia
+        [w11   w21   w31]
+        [w12   w22   w32]
+        [w13   w23   w33]
+
+        Z wartości pierwszej kolumny obliczana jest wartość wyjściowa dla 1 wyjścia
+        Z wartości drugiej kolmny obliczana jest wartość wyjściowa 2 wyjścia
+
+        BIAS_VALUES
+        tworzy 1-wymiarową listę o wymiarze ilości wyjść dla warstwy
+        Do wartości wyliczonej z popagacji do przodu do wyjścia dodawana jest wartość bias
+        3 wyjścia
+        [bias1 bias2 bias3]
+        """
+        self.weights = random.normal(loc=0.0, scale=0.1, size=(inputNodes, outputNodes))
+        self.bias_values = np.zeros(outputNodes)
+
+
+
+    """
+    Gdy mamy doczynienia z pierwszą warstwą sieci 2 cechy wejścia i 2 klasy wyścia(layer(2,2))
+    funkcja przelicza cechy*wagi i zwraca wartości wyjściowych neurownów 
+
+    Gdy wsadzimy w funkcję listę [n_próbek, n_cech] to zwraca [n_próbek, n_neuronów_wyjściowych]
+    dla 5 próbek i sieci (2,2) [5,2]
+
+    X : tablica [n_próbek, n_cech]
+    -> [n_próbek, n_outputNodes]
+    """
+    def forward_propagation(self,X):
+        
+        #print(X)
+        output_values = np.dot(X,self.weights) + self.bias_values
+        #print(output_values)
+        activation_values = SigmoidActivationFunction(output_values)
+        #print(activation_values)
+        return activation_values
+    
+    """
+    X: tablica [n_próbek,n_cech]
+    -> tablica [n_próbek]
+    """
+    def predict(self,X):
+        activation_values = self.forward_propagation(X)
+        
+        preditions = np.argmax(activation_values,axis=1)
+
+        return preditions
+
+
+class NeuralNetwork:
+    def __init__(self,layerSizes) -> None:
+        self.layers = [None]*(len(layerSizes)-1)
+        for i in range(len(self.layers)):
+            self.layers[i] = Layer(layerSizes[i],layerSizes[i+1])
+        
+        self.l2 = 0.
+
+    def network_forward_propagation(self,X):
+        for layer in self.layers:
+            X = layer.forward_propagation(X)
+
+        return X
+
+    def network_predict(self,X):
+        activation_values = self.network_forward_propagation(X)
+
+        predictions = np.argmax(activation_values,axis = 1)
+
+        return predictions
+    
+
+
+
+
+layers = [2,4,2]
+network = NeuralNetwork(layers)
+
+df = pd.read_csv('https://archive.ics.uci.edu/ml/'
+        'machine-learning-databases/iris/iris.data', header=None)
+
+y =  df.iloc[0:4,4].values
+y = np.where(y == 'Iris-setosa',0,1)
+y = one_hot._onehot(y,2)
+print(y)
+X = df.iloc[0:4,[0,2]].values
+    
+
+layer = Layer(2,2)
+
+print(layer.predict(X))
+print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+print(network.network_predict(X))
+
+
+
