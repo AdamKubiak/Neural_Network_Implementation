@@ -64,6 +64,11 @@ class Layer:
         preditions = np.argmax(activation_values,axis=1)
 
         return preditions
+    
+    def NodeCost(self,outputActivation,expectedOutput):
+        error = outputActivation - expectedOutput
+
+        return error**2
 
 
 class NeuralNetwork:
@@ -77,7 +82,8 @@ class NeuralNetwork:
     def network_forward_propagation(self,X):
         for layer in self.layers:
             X = layer.forward_propagation(X)
-
+        
+        #print(X)
         return X
 
     def network_predict(self,X):
@@ -86,6 +92,30 @@ class NeuralNetwork:
         predictions = np.argmax(activation_values,axis = 1)
 
         return predictions
+    
+    def network_loss(self,X,y):
+        activation_values = self.network_forward_propagation(X)
+        outputLayer = self.layers[len(self.layers)-1]
+        total_cost = 0
+        cost_single_data = 0
+
+        for xi, target in zip(activation_values,y):   
+            for i in range(len(activation_values[0])):
+                print(i)
+                cost_single_data += outputLayer.NodeCost(xi[i],target[i])
+            
+            total_cost += cost_single_data
+            cost = 0
+
+        return total_cost / len(X)
+
+        
+
+
+
+        
+
+        
     
 
 
@@ -100,15 +130,16 @@ df = pd.read_csv('https://archive.ics.uci.edu/ml/'
 y =  df.iloc[0:4,4].values
 y = np.where(y == 'Iris-setosa',0,1)
 y = one_hot._onehot(y,2)
-print(y)
+#print(y)
 X = df.iloc[0:4,[0,2]].values
     
 
 layer = Layer(2,2)
 
-print(layer.predict(X))
+#print(layer.predict(X))
+#print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+#print(network.network_predict(X))
 print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-print(network.network_predict(X))
-
+print(network.network_loss(X,y))
 
 
