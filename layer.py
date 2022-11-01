@@ -85,7 +85,7 @@ class NeuralNetwork:
         self.l2 = 0.01
         self.epochs = 20
         self.eta = 0.0005
-        self.minibatch_size = 0.
+        self.minibatch_size = 10
 
     def network_forward_propagation(self,X):
         for layer in self.layers:
@@ -131,16 +131,20 @@ class NeuralNetwork:
 
         return cost
     
-    def network_backward_propagation(self,X,y):
+    def network_backward_propagation(self,X,y,batch_idx):
 
-        sigma_out = self.network_forward_propagation(X) - y
-
+        sigma_out = self.network_forward_propagation(X[batch_idx]) - y[batch_idx]
+        check = 0
         for layer in self.layers:
-            sigmoid_derivative = SigmoidActivationFunctionDerivative(layer.a)
+            sigmoid_derivative = layer.a*(1.-layer.a)
 
-
+            # [n_próbek, n_etykiet_klas] dot [n_ etykiet_klas, n_hidden]
+            # -> [n_ próbek, n_hidden]
             sigma = (np.dot(sigma_out,layer.weights.T) * sigmoid_derivative)
-            grad_weights = np.dot(X.T,sigma)
+            if check == 0 :
+                grad_weights = np.dot(X[batch_idx].T,sigma)
+            else:
+                grad_weights = np.dot(X.T,sigma)
             grad_bias = np.sum(sigma,axis = 0)
             X = layer.forward_propagation(X)
 
@@ -150,31 +154,33 @@ class NeuralNetwork:
 
             layer.weights -= self.eta*delta_weights
             layer.bias_values -=self.eta*delta_bias
+            check+=1
 
     
     def learn(self,X,y):
 
         y = one_hot._onehot(y, self.layers[len(self.layers)-1].outputNodes)
-        
 
 
+        for i in range(self.epochs):
+            indices = np.arange(X.shape[0])
 
-        
+            if True:
+                random = np.random.RandomState(1)
+                random.shuffle(indices)
+
+            for start_idx in range(0,indices.shape[0] - self.minibatch_size +1,self.minibatch_size):
+                batch_idx = indices[start_idx:start_idx+self.minibatch_size]
+
+                self.network_backward_propagation(X,y,batch_idx)
+            
+            #Ewaluacja
+
+            cost = self.network_logistic_cost(y,network.network_forward_propagation(X))
+            print(cost)
 
 
-
-
-
-        
-
-
-
-        
-
-        
-    
-
-
+        return self
 
 
 layers = [2,4,2]
@@ -183,14 +189,13 @@ network = NeuralNetwork(layers)
 df = pd.read_csv('https://archive.ics.uci.edu/ml/'
         'machine-learning-databases/iris/iris.data', header=None)
 
-y =  df.iloc[0:4,4].values
+y =  df.iloc[0:100,4].values
 y = np.where(y == 'Iris-setosa',0,1)
-y = one_hot._onehot(y,2)
+#y = one_hot._onehot(y,2)
 #print(y)
-X = df.iloc[0:4,[0,2]].values
+X = df.iloc[0:100,[0,2]].values
     
-
-layer = Layer(2,2)
+network.learn(X,y)
 
 #print(layer.predict(X))
 #print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
