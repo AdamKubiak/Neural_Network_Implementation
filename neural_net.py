@@ -1,6 +1,8 @@
 from typing_extensions import Self
 import numpy as np
 import pandas as pd
+import one_hot
+import ActivationFuntions
 
 class Layer:
     def __init__(self,nInputNeurons,nOutputNeurons) -> None:
@@ -12,6 +14,10 @@ class Layer:
         self.n_iter = 50
         self.weights = np.random.rand(nInputNeurons+1, nOutputNeurons) - 0.5
 
+    def forward_propagation(self,X):
+        """Wyliczenie propagacji w przód
+
+        """
 
     def fit(self,X,y):
         for _ in range(self.n_iter):
@@ -20,15 +26,20 @@ class Layer:
                 
                 print(update)
 
-    def CalculateOutputs(self,input_data):
-        weightedInputs = [0]*self.nOutputNeurons
+    def  NeuronCost(self,activationValue,expectedValue):
+        error = activationValue - expectedValue
 
-        for i in range(len(weightedInputs)):
+        return math.pow(error,2)
+
+    def CalculateOutputs(self,input_data):
+        activationValues = [0]*self.nOutputNeurons
+
+        for i in range(len(activationValues)):
             w_ = self.weights[:,i]
-            weightedInputs[i] = np.dot(input_data,w_[1:]) + w_[0]
+            activationValues[i] = SigmoidActivationFunction(np.dot(input_data,w_[1:]) + w_[0])
         
         #print(weightedInputs)
-        return weightedInputs
+        return activationValues
 
     def predict(self,input_data):
         output = self.CalculateOutputs(input_data)
@@ -61,6 +72,15 @@ class NeuralNetwork:
         print(outputs)
         return outputs.index(max(outputs))
 
+    def CostFuntion(self,input_data,y):
+        outputs = self.CalculateOutputs(input_data)
+        outputLayer = self.layers[len(self.layers-1)]
+        cost = 0.0
+        for i in range(len(outputs)):
+            cost += outputLayer.NeuronCost(outputs[i], y)
+
+
+
 
 
 layer = Layer(2,2)
@@ -76,7 +96,9 @@ df = pd.read_csv('https://archive.ics.uci.edu/ml/'
 
 y =  df.iloc[0:100,4].values
 y = np.where(y == 'Iris-setosa',0,1)
-
+y = one_hot._onehot(y,2)
+#one_hot.to_OneHot(y)
+print(y)
 X = df.iloc[0:100,[0,2]].values
 
 #layer.fit(X,y)
