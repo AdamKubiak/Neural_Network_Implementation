@@ -7,6 +7,9 @@ import math
 def SigmoidActivationFunction(weightedInput):
     return 1/(1 + np.exp(-weightedInput))
 
+def SigmoidActivationFunctionDerivative(sigmoid_input):
+    return sigmoid_input(1-sigmoid_input)
+
 class Layer:
     def __init__(self,inputNodes,outputNodes) -> None:
 
@@ -49,8 +52,10 @@ class Layer:
         
         #print(X)
         output_values = np.dot(X,self.weights) + self.bias_values
+        self.z = output_values
         #print(output_values)
         activation_values = SigmoidActivationFunction(output_values)
+        self.a = activation_values
         #print(activation_values)
         return activation_values
     
@@ -68,7 +73,7 @@ class Layer:
     def NodeCost(self,outputActivation,expectedOutput):
         error = outputActivation - expectedOutput
 
-        return error**2
+        return error**2.
 
 
 class NeuralNetwork:
@@ -77,7 +82,10 @@ class NeuralNetwork:
         for i in range(len(self.layers)):
             self.layers[i] = Layer(layerSizes[i],layerSizes[i+1])
         
-        self.l2 = 0.
+        self.l2 = 0.01
+        self.epochs = 20
+        self.eta = 0.0005
+        self.minibatch_size = 0.
 
     def network_forward_propagation(self,X):
         for layer in self.layers:
@@ -108,6 +116,54 @@ class NeuralNetwork:
             cost = 0
 
         return total_cost / len(X)
+
+    def network_logistic_cost(self,y,final_activation_values):
+        L2_term = 0
+
+        for layer in self.layers:
+            L2_term += np.sum(layer.weights**2.)
+        
+        L2_term = L2_term*self.l2
+
+        term1 = -y * (np.log(final_activation_values + 1e-5))
+        term2 = (1. - y) * np.log(1. - final_activation_values + 1e-5)
+        cost = np.sum(term1 - term2) + L2_term
+
+        return cost
+    
+    def network_backward_propagation(self,X,y):
+
+        sigma_out = self.network_forward_propagation(X) - y
+
+        for layer in self.layers:
+            sigmoid_derivative = SigmoidActivationFunctionDerivative(layer.a)
+
+
+            sigma = (np.dot(sigma_out,layer.weights.T) * sigmoid_derivative)
+            grad_weights = np.dot(X.T,sigma)
+            grad_bias = np.sum(sigma,axis = 0)
+            X = layer.forward_propagation(X)
+
+            #regularyzacja i aktualizowanie wag
+            delta_weights = (grad_weights + self.l2*layer.weights)
+            delta_bias = grad_bias
+
+            layer.weights -= self.eta*delta_weights
+            layer.bias_values -=self.eta*delta_bias
+
+    
+    def learn(self,X,y):
+
+        y = one_hot._onehot(y, self.layers[len(self.layers)-1].outputNodes)
+        
+
+
+
+        
+
+
+
+
 
         
 
@@ -140,6 +196,6 @@ layer = Layer(2,2)
 #print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 #print(network.network_predict(X))
 print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-print(network.network_loss(X,y))
+print(network.network_logistic_cost(y,network.network_forward_propagation(X)))
 
 
