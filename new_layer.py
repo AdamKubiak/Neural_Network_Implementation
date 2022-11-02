@@ -43,17 +43,11 @@ class Layer:
     X : tablica [n_próbek, n_cech]
     -> [n_próbek, n_outputNodes]
     """
-    def forward_propagation(self,X):
-        
-        #print(X)
+    def forward_propagation(self,X): 
         output_values = np.dot(X,self.weights) + self.bias_values
         self.z = output_values
-        #print(output_values)
-        #print(output_values.shape)
-        #print(output_values)
         activation_values = SigmoidActivationFunction(output_values)
         self.a = activation_values
-        #print(activation_values)
         return activation_values
 
     """
@@ -73,8 +67,9 @@ class Layer:
         return 0.5*error*error
     
     def ApplyGradients(self,eta):
+
         self.bias_values -= self.costGradientB
-        self.weights -= self.costGradientB * eta
+        self.weights -= self.costGradientW * eta
 
 class NeuralNetwork:
     def __init__(self,layerSizes,epoch,eta) -> None:
@@ -101,23 +96,17 @@ class NeuralNetwork:
     
     def network_loss(self,X,y):
         activation_values = self.network_forward_propagation(X)
-        #print(activation_values.shape)
+        
         outputLayer = self.layers[len(self.layers)-1]
         total_cost = 0
         cost_single_data = 0
 
         for xi, target in zip(activation_values,y):
-            #print(xi)
-            #print(target)
-            #print(len(activation_values[0]))   
             for i in range(len(activation_values[0])):
-                cost_single_data += outputLayer.NodeCost(xi[i],target[i])
-                #print(outputLayer.NodeCost(xi[i],target[i]))  
+                cost_single_data += outputLayer.NodeCost(xi[i],target[i]) 
 
             total_cost += cost_single_data
             cost_single_data = 0
-            
-        #print(len(X))
 
         return total_cost / len(X)
 
@@ -130,20 +119,24 @@ class NeuralNetwork:
         y = one_hot._onehot(y,self.layers[len(self.layers)-1].outputNodes)
         
         originalCost = self.network_loss(X,y)
-        #print(originalCost)
         for i in range(self.epoch):
             for layer in self.layers:
-                layer.weights += h
-                #print(self.network_loss(X,y))
-                deltaCost = self.network_loss(X,y) - originalCost
-                layer.weights -= h
-                layer.costGradientW = deltaCost/h
-                layer.bias_values += h
-                deltaCost = self.network_loss(X,y) - originalCost
-                layer.bias_values -= h
-                layer.costGradientB = deltaCost / h
+                for nodeIn in range(layer.inputNodes):
+                    for nodeOut in range(layer.outputNodes):
+                        layer.weights[nodeIn][nodeOut] +=h
+                        deltaCost = self.network_loss(X,y) - originalCost
+                        layer.weights[nodeIn][nodeOut] -=h
+                        layer.costGradientW[nodeIn][nodeOut] = deltaCost/h
 
 
+                for biasIdx in range(layer.outputNodes):
+                    layer.bias_values[biasIdx] +=h
+                    deltaCost = self.network_loss(X,y) - originalCost
+                    layer.bias_values[biasIdx] -=h
+                    layer.costGradientB[biasIdx] = deltaCost/h
+                print(layer.costGradientW.shape)
+                print(layer.costGradientW)
+                print(layer.costGradientB)
                 layer.ApplyGradients(self.eta)
 
             print(self.network_loss(X,y))
@@ -158,26 +151,12 @@ df = pd.read_csv('https://archive.ics.uci.edu/ml/'
 
 y =  df.iloc[0:100,4].values
 y = np.where(y == 'Iris-setosa',0,1)
-#y = one_hot._onehot(y,2)
-#print(y)
 X = df.iloc[0:100,[0,2]].values
 
 
 
 
 layers = [2,3,2]
-network = NeuralNetwork(layers,10,0.21)
-
+network = NeuralNetwork(layers,10,0.01)
 network.learn(X,y)
-#network.network_loss(X,y)
 
-
-
-
-#layer = Layer(4,2)
-#print(layer.weights)
-#print(layer.weights.shape)
-
-#print(layer.predict(X))
-#print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-#print(network.network_predict(X))
