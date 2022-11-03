@@ -134,10 +134,11 @@ class NeuralNetwork:
                     deltaCost = self.network_loss(X,y) - originalCost
                     layer.bias_values[biasIdx] -=h
                     layer.costGradientB[biasIdx] = deltaCost/h
-                print(layer.costGradientW.shape)
-                print(layer.costGradientW)
-                print(layer.costGradientB)
+                #print(layer.costGradientW.shape)
+                #print(layer.costGradientW)
+                #print(layer.costGradientB)
                 layer.ApplyGradients(self.eta)
+                originalCost = self.network_loss(X,y)
 
             print(self.network_loss(X,y))
 
@@ -156,7 +157,11 @@ X = df.iloc[0:100,[0,2]].values
 
 
 
-layers = [2,3,2]
-network = NeuralNetwork(layers,10,0.01)
+layers = [2,4,2]
+network = NeuralNetwork(layers,1000,0.23)
 network.learn(X,y)
+
+print(network.network_predict(X))
+
+
 
