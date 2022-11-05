@@ -80,6 +80,7 @@ class NeuralNetwork:
         self.l2 = 0.
         self.epoch = epoch
         self.eta = eta
+        self.errors = []
 
     def network_forward_propagation(self,X):
         for layer in self.layers:
@@ -140,28 +141,77 @@ class NeuralNetwork:
                 layer.ApplyGradients(self.eta)
                 originalCost = self.network_loss(X,y)
 
-            print(self.network_loss(X,y))
-
-
-
-        
+            self.errors.append(self.network_loss(X,y))
 
 
 df = pd.read_csv('https://archive.ics.uci.edu/ml/'
         'machine-learning-databases/iris/iris.data', header=None)
 
-y =  df.iloc[0:100,4].values
-y = np.where(y == 'Iris-setosa',0,1)
-X = df.iloc[0:100,[0,2]].values
+y1 =  df.iloc[0:150,4].values
+y = np.where(y1[100:150] == 'Iris-virginica',2,0)
+y2 = np.where(y1[50:100] == 'Iris-versicolor',1,0)
+y3 = np.where(y1[0:50] == 'Iris-setosa',0,1)
+y_final = np.append(y,y2)
+Y = np.append(y_final,y3)
+X = df.iloc[0:150,[0,2]].values
+print(Y)
 
 
-
-
-layers = [2,4,2]
+layers = [2,4,3]
 network = NeuralNetwork(layers,1000,0.23)
-network.learn(X,y)
-
-print(network.network_predict(X))
+network.learn(X,Y)
 
 
+import matplotlib.pyplot as plt
+plt.scatter(X[:50,0],X[:50,1],color = 'red', marker = 'o', label = 'Setosa')
+plt.scatter(X[50:100,0],X[50:100,1],color = 'blue', marker = 'x', label = 'Versicolor')
+plt.scatter(X[100:150,0],X[100:150,1],color = 'yellow', marker = 'o', label = 'Virginica')
+plt.xlabel('Długość działki [cm]')
+plt.ylabel('Długość płatka [cm]')
+plt.show()
 
+plt.plot(range(1,len(network.errors)+1),network.errors,marker = 'o')
+plt.xlabel('Epoki')
+plt.ylabel('Wartosc bledu')
+plt.show()
+
+
+from matplotlib.colors import ListedColormap
+
+
+def plot_decision_regions(X, y, classifier, resolution=0.02):
+
+    # konfiguruje generator znaczników i mapę kolorów
+    markers = ('s', 'x', 'o', '^', 'v')
+    colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+    cmap = ListedColormap(colors[:len(np.unique(y))])
+
+    # rysuje wykres powierzchni decyzyjnej
+    x1_min, x1_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    x2_min, x2_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx1, xx2 = np.meshgrid(np.arange(x1_min, x1_max, resolution),
+                           np.arange(x2_min, x2_max, resolution))
+    Z = classifier.network_predict(np.array([xx1.ravel(), xx2.ravel()]).T)
+    Z = Z.reshape(xx1.shape)
+    plt.contourf(xx1, xx2, Z, alpha=0.3, cmap=cmap)
+    plt.xlim(xx1.min(), xx1.max())
+    plt.ylim(xx2.min(), xx2.max())
+
+    # rysuje wykres próbek
+    for idx, cl in enumerate(np.unique(y)):
+        plt.scatter(x=X[y == cl, 0], 
+                    y=X[y == cl, 1],
+                    alpha=0.8, 
+                    c=colors[idx],
+                    marker=markers[idx], 
+                    label=cl, 
+                    edgecolor='black')
+
+plot_decision_regions(X, Y, classifier=network)
+plt.xlabel('Długość działki [cm]')
+plt.ylabel('Długość płatka [cm]')
+plt.legend(loc='upper left')
+
+
+#plt.savefig('rysunki/02_08.png', dpi=300)
+plt.show()
