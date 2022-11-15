@@ -1,21 +1,15 @@
 import numpy as np
-
-
-
-def SigmoidActivationFunction(weightedInput):
-    return 1./(1. + np.exp(-weightedInput))
-
-def SigmoidActivationFunctionDerivative(weightedInput):
-    activation = SigmoidActivationFunction(weightedInput)
-    
-    return activation*(1. - activation)
+import ActivationFunctions as af
 
 class Layer:
-    def __init__(self,inputNodes,outputNodes) -> None:
+    def __init__(self,inputNodes,outputNodes,ActivatioName) -> None:
 
         self.inputNodes = inputNodes
         self.outputNodes = outputNodes
         random = np.random.RandomState(1)
+        afObject = af.Activation()
+        self.activation = afObject.ActivationFunctionPick(ActivatioName)
+        self.activationDerivative = afObject.ActivationFunctionDerivativePick(ActivatioName)
         """
         WEIGHTS
         tworzy 2-wymiarową listę z wartościami wag 
@@ -51,7 +45,9 @@ class Layer:
         self.x = X
         output_values = np.dot(X,self.weights) + self.bias_values
         self.z = output_values
-        activation_values = SigmoidActivationFunction(output_values)
+        activation_values = self.activation(output_values)
+        print(activation_values.shape)
+        #activation_values = SigmoidActivationFunction(output_values)
         self.a = activation_values
         return activation_values
 
@@ -103,7 +99,8 @@ class Layer:
 
         costDerivative = self.NodeCostDerivative(self.a, expectedOutputs)
         
-        activationDerivative = SigmoidActivationFunctionDerivative(self.z)
+        #activationDerivative = SigmoidActivationFunctionDerivative(self.z)
+        activationDerivative = self.activationDerivative(self.z)
         
 
         nodeValues = np.multiply(costDerivative,activationDerivative)
@@ -120,7 +117,8 @@ class Layer:
         weightedInputDerivative = previousLayer.weights
         newNodeValues= np.dot(previousNodeValues,weightedInputDerivative.T)
 
-        newNodeValues = np.multiply(newNodeValues,SigmoidActivationFunctionDerivative(self.z))
+        #newNodeValues = np.multiply(newNodeValues,SigmoidActivationFunctionDerivative(self.z))
+        newNodeValues = np.multiply(newNodeValues,self.activationDerivative(self.z))
 
         return newNodeValues
 

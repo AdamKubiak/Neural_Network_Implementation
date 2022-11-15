@@ -5,10 +5,13 @@ import numpy as np
 
 
 class NeuralNetwork:
-    def __init__(self,layerSizes,epoch,eta,l2,minibatch_size) -> None:
+    def __init__(self,layerSizes,epoch,eta,l2,minibatch_size,HiddenLayerActivation,OutputLayerActivation) -> None:
         self.layers = [None]*(len(layerSizes)-1)
         for i in range(len(self.layers)):
-            self.layers[i] = lyr.Layer(layerSizes[i],layerSizes[i+1])
+            if i == (len(self.layers)-1):
+                self.layers[i] = lyr.Layer(layerSizes[i],layerSizes[i+1],OutputLayerActivation)
+            else:
+                self.layers[i] = lyr.Layer(layerSizes[i],layerSizes[i+1],HiddenLayerActivation)
 
         self.l2 = l2
         self.epoch = epoch
@@ -106,7 +109,7 @@ class NeuralNetwork:
                 self.UpdateAllGradients(X[batch_idx],y[batch_idx])
                 self.ApplyAllGradients()
 
-            if i%5 == 0:
+            if i%1 == 0:
                 cost = self.network_loss(X,y)
                 self.errors.append(cost)
                 y_train_pred = self.network_predict(X)
