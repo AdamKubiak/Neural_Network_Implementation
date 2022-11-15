@@ -29,46 +29,45 @@ class Activation:
         return array
 
     def SoftmaxActivationFunction(self,weightedInput):
-        z = np.max(weightedInput,axis=1)
+        z = np.max(weightedInput, axis=1)
         weightedInput = weightedInput - z[:,None]
-        e = np.exp(weightedInput)/np.sum(np.exp(weightedInput))
-        
+        e = np.exp(weightedInput)/np.sum(np.exp(weightedInput), axis=1, keepdims=True)
+
         return e
 
     def SoftmaxActivationFunctionDerivative(self,weightedInput):
         z = np.max(weightedInput,axis=1)
         weightedInput = weightedInput - z[:,None]
         ex = np.exp(weightedInput)
-        expSum = np.sum(np.exp(weightedInput))
+        expSum = np.sum(np.exp(weightedInput),  axis=1, keepdims=True)
         return (ex*expSum-ex*ex)/(expSum*expSum)
-    
+
     def ActivationFunctionPick(self,name):
 
         if name == 'Sigmoid':
             return self.SigmoidActivationFunction
-        
+
         if name == 'TanH':
             return self.TanHActivationFunction
-        
+
         if name == 'ReLU':
             return self.ReLUActivationFunction
 
         if name == 'Softmax':
             return self.SoftmaxActivationFunction
-    
+
     def ActivationFunctionDerivativePick(self,name):
 
         if name == 'Sigmoid':
             return self.SigmoidActivationFunctionDerivative
-        
+
         if name == 'TanH':
             return self.TanHActivationFunctionDerivative
-        
+
         if name == 'ReLU':
             return self.ReLUActivationFunctionDerivative
 
         if name == 'Softmax':
             return self.SoftmaxActivationFunctionDerivative
-            
+
         return 0
-    
