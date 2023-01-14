@@ -21,10 +21,10 @@ class Activation:
         return 1 - t * t
 
     def ReLUActivationFunction(self,weightedInput):
-        return np.maximum(0, weightedInput)
+        return np.maximum(0., weightedInput)
 
     def ReLUActivationFunctionDerivative(self,weightedInput):
-        array = np.where(weightedInput > 0, 1, 0)
+        array = np.where(weightedInput > 0., 1., 0.)
 
         return array
 
@@ -41,33 +41,36 @@ class Activation:
         ex = np.exp(weightedInput)
         expSum = np.sum(np.exp(weightedInput),  axis=1, keepdims=True)
         return (ex*expSum-ex*ex)/(expSum*expSum)
+    
+    
 
     def ActivationFunctionPick(self,name):
 
         if name == 'Sigmoid':
             return self.SigmoidActivationFunction
-
+        
         if name == 'TanH':
             return self.TanHActivationFunction
-
+        
         if name == 'ReLU':
             return self.ReLUActivationFunction
 
         if name == 'Softmax':
             return self.SoftmaxActivationFunction
-
+    
     def ActivationFunctionDerivativePick(self,name):
 
         if name == 'Sigmoid':
             return self.SigmoidActivationFunctionDerivative
-
+        
         if name == 'TanH':
             return self.TanHActivationFunctionDerivative
-
+        
         if name == 'ReLU':
             return self.ReLUActivationFunctionDerivative
 
         if name == 'Softmax':
             return self.SoftmaxActivationFunctionDerivative
-
+            
         return 0
+    
