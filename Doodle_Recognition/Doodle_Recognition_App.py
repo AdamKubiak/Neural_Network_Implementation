@@ -26,9 +26,11 @@ class Spot:
         self.color = list(Colors.BLACK)
         self.width = width
     
-    def add_color(self):
+    def add_color(self,val):
         for c in range(3):
-            self.color[c] += 50. if self.color[c] < 250. else 0
+            test = self.color[c] +val 
+            if test < 255.:
+                self.color[c] += val  
     
     def get_pos(self):
         return self.row, self.col
@@ -69,6 +71,9 @@ def get_indices(pos, rows, window_width):
     col = x // gap
     return row, col
     
+def doodle_add_color(img,row,col,val):
+    if img[0,row*28+col] < 255.:
+        img[0,row*28+col] += val
 def main():
     model = joblib.load('SSmodel.joblib')
     win = pygame.display.set_mode((TOTAL_PIXELS, TOTAL_PIXELS))
@@ -97,8 +102,30 @@ def main():
             pos = pygame.mouse.get_pos()
             row, col = get_indices(pos, 28, 784)
             if row < 28 and col<28 and row >=0 and col >=0:
-                grid[row][col].add_color()
-                doodle[0,row*28+col] += 50. if doodle[0,row*28+col] < 250. else 0
+                grid[row][col].add_color(50)
+                if doodle[0,row*28+col] < 255.:
+                    doodle[0,row*28+col] += 50.
+
+                if row+1 < 28 and col<28 and row+1 >=0 and col >=0:
+                    grid[row+1][col].add_color(10)
+                    if (doodle[0,(row+1)*28+col] +10) < 255.:
+                        doodle[0,(row+1)*28+col] += 10.
+        
+                if row-1 < 28 and col<28 and row-1 >=0 and col >=0:
+                    grid[row-1][col].add_color(10)
+                    if (doodle[0,(row-1)*28+col]+10) < 255.:
+                        doodle[0,(row-1)*28+col] += 10.
+
+                if row < 28 and col+1<28 and row >=0 and col+1 >=0:
+                    grid[row][col+1].add_color(10)
+                    if (doodle[0,row*28+col+1]+10) < 255.:
+                        doodle[0,row*28+col+1] += 10.
+                        
+                if row < 28 and col-1<28 and row >=0 and col-1 >=0:
+                    grid[row][col-1].add_color(10)
+                    if (doodle[0,row*28+col-1] +10)< 255.:
+                        doodle[0,row*28+col-1] += 10.
+                
                 #image = ((doodle/255.)-.5)*2
                 image = doodle/255.
                 #res = model.network_predict(image)
